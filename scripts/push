@@ -1,0 +1,3 @@
+#!/bin/bash
+
+docker push yatsu/a8r-oidc-auth-service
