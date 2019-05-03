@@ -6,6 +6,7 @@ module.exports = {
     'no-console': 'off',
     'no-mixed-operators': 'off',
     'no-param-reassign': ['error', { props: false }],
+    'no-restricted-syntax': 'off',
     'no-shadow': 'off',
     'no-template-curly-in-string': 'off',
     semi: ['error', 'never'],

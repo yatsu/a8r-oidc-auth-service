@@ -12,7 +12,7 @@
     "kubernetes"
   ],
   "scripts": {
-    "start": "node ./bin/server",
+    "start": "nodemon server.js",
     "build": "scripty",
     "push": "scripty"
   },
@@ -20,14 +20,19 @@
     "silent": true
   },
   "dependencies": {
+    "cookie-parser": "^1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.0",
-    "morgan": "~1.9.0"
+    "express-session": "^1.16.1",
+    "morgan": "~1.9.0",
+    "openid-client": "^2.5.0",
+    "passport": "^0.4.0"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.17.2",
+    "nodemon": "^1.19.0",
     "prettier-eslint-cli": "^4.7.1",
     "scripty": "^1.9.1"
   }
