@@ -27,10 +27,13 @@ async function appSetup() {
     redirect_uri: process.env.OIDC_REDIRECT_URI,
     scope: process.env.OIDC_SCOPE
   }
+  const enableBearerIdToken = !!process.env.ENABLE_BEARER_ID_TOKEN
 
   const app = express()
 
-  app.use(logger('dev'))
+  app.use(logger('dev', {
+    skip: req => req.path === '/healthz'
+  }))
 
   app.use(express.urlencoded({ extended: false }))
 
@@ -42,15 +45,14 @@ async function appSetup() {
       {
         client,
         params: oidcParams,
-        passReqToCallback: false,
+        passReqToCallback: true,
         usePKCE: true
       },
-      (tokenset, userinfo, done) => {
+      (req, tokenset, userinfo, done) => {
         log.debug('tokenset %o', tokenset)
-        log.debug('access_token %o', tokenset.access_token)
-        log.debug('id_token %o', tokenset.id_token)
-        log.debug('claims %o', tokenset.claims)
         log.debug('userinfo %o', userinfo)
+        // store id token to construct Authorization header later
+        req.session.idToken = tokenset.id_token
         return done(null, userinfo)
       }
     )
@@ -95,6 +97,9 @@ async function appSetup() {
     }
     if (req.isAuthenticated()) {
       log.info('Auth OK: %s', req.path)
+      if (enableBearerIdToken) {
+        res.append('Authorization', `Bearer ${req.session.idToken}`)
+      }
       res.sendStatus(200)
       return
     }
