@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="<%= root %>/assets/stylesheets/mini-default.min.css">
+  <link rel="stylesheet" href="<%= root %>/assets/stylesheets/highlight/nord.css">
+  <script src="<%= root %>/assets/javascripts/highlight.pack.js"></script>
+  <script src="<%= root %>/assets/javascripts/clipboard.min.js"></script>
+  <title><%= title %></title>
+  <%- style %>
+  <style>
+    #main {
+      width: 80%;
+      margin: 0 auto;
+      max-width: 800px;
+    }
+    .stack-trace {
+      white-space: pre-line;
+    }
+    pre {
+      border: 0;
+      margin: 0;
+      padding: 0;
+    }
+    pre code {
+      line-height: 1.2;
+      font-size: 1em;
+    }
+    pre code::-webkit-scrollbar {
+        -webkit-appearance: none;
+    }
+    pre code::-webkit-scrollbar:horizontal {
+        height: 14px;
+    }
+    pre code::-webkit-scrollbar-thumb {
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        background: #aaa;
+    }
+    pre code::-webkit-scrollbar-track {
+        background: #ddd;
+    }
+    .hljs {
+      padding: 1em;
+    }
+    .config-block {
+      position: relative;
+    }
+    button.copy {
+      position: absolute;
+      top: 23px;
+      right: -8px;
+      z-index: 1;
+    }
+    .toast {
+      position: absolute;
+      width: 50px;
+      height: 1.5em;
+      top: 10px;
+      right: -50px;
+      bottom: inherit;
+      left: inherit;
+      z-index: 2;
+    }
+    .show {
+      opacity: 1;
+      transition: opacity 100ms;
+    }
+    .hide {
+      opacity: 0;
+      transition: opacity 3000ms;
+    }
+  </style>
+</head>
+<body>
+  <%- defineContent('header') %>
+  <%- body %>
+  <%- defineContent('footer') %>
+  <%- script %>
+</body>

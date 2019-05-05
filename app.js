@@ -1,7 +1,10 @@
-const cookieParse = require('cookie-parser')
+const cookieParser = require('cookie-parser')
 const createDebug = require('debug')
 const express = require('express')
+const expressLayouts = require('express-ejs-layouts')
 const session = require('express-session')
+const createError = require('http-errors')
+const path = require('path')
 const logger = require('morgan')
 const passport = require('passport')
 const { Issuer, Strategy } = require('openid-client')
@@ -14,6 +17,8 @@ const log = {
 async function appSetup() {
   log.info('OIDC provider: %s', process.env.OIDC_PROVIDER)
   const issuer = await Issuer.discover(process.env.OIDC_PROVIDER)
+
+  const root = process.env.KUBECTL_PAGE_PATH
 
   log.info(
     'OIDC client: %s redirect_uri: %s',
@@ -31,13 +36,24 @@ async function appSetup() {
 
   const app = express()
 
-  app.use(logger('dev', {
-    skip: req => req.path === '/healthz'
-  }))
+  app.set('views', path.join(__dirname, 'views'))
+  app.set('view engine', 'ejs')
+
+  app.use(
+    logger('dev', {
+      skip: req => req.path === '/healthz'
+    })
+  )
 
   app.use(express.urlencoded({ extended: false }))
 
-  app.use(cookieParse())
+  app.use(cookieParser())
+
+  app.use(express.static(path.join(__dirname, 'public')))
+
+  app.use(expressLayouts)
+  app.set('layout extractScripts', true)
+  app.set('layout extractStyles', true)
 
   passport.use(
     'oidc',
@@ -53,6 +69,9 @@ async function appSetup() {
         log.debug('userinfo %o', userinfo)
         // store id token to construct Authorization header later
         req.session.idToken = tokenset.id_token
+        // store userinfo and refresh token to show kubectl config later
+        req.session.userinfo = userinfo
+        req.session.refreshToken = tokenset.refresh_token
         return done(null, userinfo)
       }
     )
@@ -79,7 +98,7 @@ async function appSetup() {
 
   const skipPath = process.env.OIDC_SKIP_PATH
   const skip = skipPath ? skipPath.split(':') : []
-  log.debug('skip path: %o', skip)
+  log.info('Skip path: %o', skip)
 
   app.use('/', (req, res, next) => {
     for (const path of ['/healthz', '/oidc']) {
@@ -100,8 +119,20 @@ async function appSetup() {
       if (enableBearerIdToken) {
         res.append('Authorization', `Bearer ${req.session.idToken}`)
       }
+      // Return contents for those paths
+      for (const path of ['/kubectl', '/assets']) {
+        if (req.path.startsWith(path)) {
+          next()
+          return
+        }
+      }
+      // Return only status for other paths
       res.sendStatus(200)
       return
+    }
+    if (req.path.startsWith('/api')) {
+      // Let kube-apiserver auth this
+      res.sendStatus(200)
     }
     log.info('Auth NG: %s', req.path)
     res.redirect('/oidc/login')
@@ -129,8 +160,43 @@ async function appSetup() {
     res.redirect('/oidc/login')
   })
 
+  app.get('/kubectl', (req, res) => {
+    res.locals = {
+      root: root.replace(/\/$/, ''),
+      title: process.env.TITLE || 'kubectl Configuration',
+      username: req.session.userinfo.preferred_username,
+      idToken: req.session.idToken,
+      refreshToken: req.session.refreshToken,
+      provider: process.env.OIDC_PROVIDER,
+      clientId: process.env.OIDC_CLIENT_ID,
+      clusterName: process.env.CLUSTER_NAME,
+      kubeApiUrl: process.env.KUBE_API_URL,
+      kubectlContext: process.env.KUBECTL_CONTEXT
+    }
+    res.render('kubectl')
+  })
+
   app.get('/healthz', (_, res) => {
     res.sendStatus(200)
+  })
+
+  // Catch 404 and forward to error handler
+  app.use((_, __, next) => {
+    next(createError(404))
+  })
+
+  // Error handler
+  // eslint-disable-next-line
+  app.use((err, req, res, _) => {
+    res.status(err.status || 500)
+    res.locals = {
+      root: root.replace(/\/$/, ''),
+      env: req.app.get('env'),
+      title: 'Error',
+      message: err.message,
+      error: err
+    }
+    res.render('error')
   })
 
   return app

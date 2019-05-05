@@ -1,0 +1,8 @@
+<%- contentFor('body') %>
+<div id="main">
+  <h2><%= title %></h2>
+  <h3><%= error.status %> <%= message %></h3>
+  <% if (env === "development") { %>
+  <pre class="stack-trace"><%= error.stack %></pre>
+  <% } %>
+</div>

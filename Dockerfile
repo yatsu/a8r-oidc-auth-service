@@ -1,6 +1,6 @@
 FROM node:8.15.1-alpine
 
-COPY package.json yarn.lock app.js server.js /app/
+COPY . /app/
 
 RUN chown -R node:node /app
 

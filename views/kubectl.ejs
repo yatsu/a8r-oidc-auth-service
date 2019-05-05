@@ -1,0 +1,54 @@
+<%- contentFor('body') %>
+<div id="main">
+  <h2><%= title %></h2>
+  <h3>Creating Context</h3>
+  <div class="config-block">
+    <p>Execute the following commands to setup a kubectl context:</p>
+    <button id="set-context-button" class="copy small" data-clipboard-target="#set-context"><span class="icon-edit" title="Copy"></span></button>
+    <span id="set-context-button-toast" class="toast hide">Copied</span>
+    <pre><code id="set-context" class="bash">kubectl config set-cluster <%= clusterName %> --server="<%= kubeApiUrl %>"
+kubectl config set-credentials <%= username %> \
+    --auth-provider=oidc \
+    --auth-provider-arg idp-issuer-url="<%= provider %>" \
+    --auth-provider-arg client-id="<%= clientId %>" \
+    --auth-provider-arg id-token="<%= idToken %>" \
+    --auth-provider-arg refresh-token="<%= refreshToken %>"
+kubectl config set-context <%= kubectlContext %> --cluster=<%= clusterName %> --user=<%= username %></code></pre>
+  </div>
+  <h3>Using Context</h3>
+  <div class="config-block">
+    <p>You can switch the context by this command:</p>
+    <button id="switch-context-button" class="copy small" data-clipboard-target="#switch-context"><span class="icon-edit" title="Copy"></span></button>
+    <span id="switch-context-button-toast" class="toast hide">Copied</span>
+    <pre><code id="switch-context" class="bash">kubectl config use-context <%= kubectlContext %></code></pre>
+  </div>
+  <div class="config-block">
+    <p>If you prefer using the context on the fly, run kubectl like this:</p>
+    <button id="specify-context-button" class="copy small" data-clipboard-target="#specify-context"><span class="icon-edit" title="Copy"></span></button>
+    <span id="specify-context-button-toast" class="toast hide">Copied</span>
+    <pre><code id="specify-context" class="bash">kubectl --context=<%= kubectlContext %> get pods</code></pre>
+  </div>
+</div>
+<script>
+hljs.initHighlightingOnLoad();
+
+function fadeIn(elem) {
+  elem.classList.add('show');
+  elem.classList.remove('hide');
+}
+
+function fadeOut(elem) {
+  elem.classList.add('hide');
+  elem.classList.remove('show');
+}
+
+var clipboard = new ClipboardJS('.copy');
+clipboard.on('success', function (e) {
+  var toast = document.getElementById(e.trigger.id + "-toast");
+  fadeIn(toast)
+  setTimeout(function() {
+    e.clearSelection();
+    fadeOut(toast);
+  }, 100);
+});
+</script>
