@@ -26,7 +26,6 @@
     "express": "~4.16.0",
     "express-ejs-layouts": "^2.5.0",
     "express-session": "^1.16.1",
-    "got": "^9.6.0",
     "http-errors": "^1.7.2",
     "morgan": "~1.9.0",
     "openid-client": "^2.5.0",

@@ -14,6 +14,15 @@ const log = {
   debug: createDebug('a8r-oidc-auth-service:debug')
 }
 
+function pathMatch(path, paths) {
+  for (const p of paths) {
+    if (path.startsWith(p)) {
+      return true
+    }
+  }
+  return false
+}
+
 async function appSetup() {
   log.info('OIDC provider: %s', process.env.OIDC_PROVIDER)
   const issuer = await Issuer.discover(process.env.OIDC_PROVIDER)
@@ -96,46 +105,37 @@ async function appSetup() {
   app.use(passport.initialize())
   app.use(passport.session())
 
-  const skipPath = process.env.OIDC_SKIP_PATH
-  const skip = skipPath ? skipPath.split(':') : []
-  log.info('Skip path: %o', skip)
+  const skipPath = (process.env.OIDC_SKIP_PATH || '').split(':')
+  log.info('Skip path: %o', skipPath)
+
+  const kubeApiPath = (process.env.KUBE_API_PATH || '').split(':')
+  log.info('Kubernetes API path: %o', kubeApiPath)
 
   app.use('/', (req, res, next) => {
-    for (const path of ['/healthz', '/oidc']) {
-      if (req.path.startsWith(path)) {
-        next()
-        return
-      }
-    }
-    for (const path of skip) {
-      if (req.path.startsWith(path)) {
-        log.info('Auth Skip: %s', req.path)
-        res.sendStatus(200)
-        return
-      }
-    }
-    if (req.isAuthenticated()) {
+    if (pathMatch(req.path, ['/healthz', '/oidc'])) {
+      // These paths are handled by this app and do not require auth
+      next()
+    } else if (pathMatch(req.path, skipPath)) {
+      log.info('Auth Skip: %s', req.path)
+      res.sendStatus(200)
+    } else if (req.isAuthenticated()) {
       log.info('Auth OK: %s', req.path)
       if (enableBearerIdToken) {
         res.append('Authorization', `Bearer ${req.session.idToken}`)
       }
-      // Return contents for those paths
-      for (const path of ['/kubectl', '/assets']) {
-        if (req.path.startsWith(path)) {
-          next()
-          return
-        }
+      if (pathMatch(req.path, ['/kubectl', '/assets'])) {
+        // These paths are handled by this app
+        next()
+      } else {
+        res.sendStatus(200)
       }
-      // Return only status for other paths
-      res.sendStatus(200)
-      return
-    }
-    if (req.path.startsWith('/api')) {
+    } else if (pathMatch(req.path, kubeApiPath)) {
       // Let kube-apiserver auth this
       res.sendStatus(200)
+    } else {
+      log.info('Auth NG: %s', req.path)
+      res.redirect('/oidc/login')
     }
-    log.info('Auth NG: %s', req.path)
-    res.redirect('/oidc/login')
   })
 
   app.get(
