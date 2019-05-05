@@ -120,6 +120,7 @@ async function appSetup() {
       res.sendStatus(200)
     } else if (req.isAuthenticated()) {
       log.info('Auth OK: %s', req.path)
+      res.append('X-Auth-Userinfo', JSON.stringify(req.session.userinfo))
       if (enableBearerIdToken) {
         res.append('Authorization', `Bearer ${req.session.idToken}`)
       }
