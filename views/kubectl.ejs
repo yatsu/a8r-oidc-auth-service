@@ -1,6 +1,11 @@
 <%- contentFor('body') %>
 <div id="main">
-  <h2><%= title %></h2>
+  <h2>kubectl Configuration</h2>
+  <h3>Installing kubectl</h3>
+  <div class="config-block">
+    <p>If you do not have kubectl, follow the instructions here:</p>
+    <p><a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">Install and Set Up kubectl - Kubernetes</a></p>
+  </div>
   <h3>Creating Context</h3>
   <div class="config-block">
     <p>Execute the following commands to setup a kubectl context:</p>
@@ -17,7 +22,7 @@ kubectl config set-context <%= kubectlContext %> --cluster=<%= clusterName %> --
   </div>
   <h3>Using Context</h3>
   <div class="config-block">
-    <p>You can switch the context by this command:</p>
+    <p>You can use this context as follows:</p>
     <button id="switch-context-button" class="copy small" data-clipboard-target="#switch-context"><span class="icon-edit" title="Copy"></span></button>
     <span id="switch-context-button-toast" class="toast hide">Copied</span>
     <pre><code id="switch-context" class="bash">kubectl config use-context <%= kubectlContext %></code></pre>

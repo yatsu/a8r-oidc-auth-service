@@ -158,13 +158,17 @@ async function appSetup() {
   app.get('/oidc/logout', (req, res) => {
     req.logout()
     req.session.destroy()
-    res.redirect('/oidc/login')
+    res.redirect(
+      `${process.env.OIDC_PROVIDER}/protocol/openid-connect/logout?redirect_uri=${
+        encodeURIComponent(process.env.TOP_URL)
+      }`
+    )
   })
 
   app.get('/kubectl', (req, res) => {
     res.locals = {
       root: root.replace(/\/$/, ''),
-      title: process.env.TITLE || 'kubectl Configuration',
+      title: process.env.TITLE || 'Example Cluster',
       username: req.session.userinfo.preferred_username,
       idToken: req.session.idToken,
       refreshToken: req.session.refreshToken,

@@ -10,10 +10,22 @@
   <title><%= title %></title>
   <%- style %>
   <style>
-    #main {
+    body {
       width: 80%;
       margin: 0 auto;
       max-width: 800px;
+    }
+    header.container {
+      padding: 0;
+    }
+    header .button {
+      text-transform: none;
+    }
+    .logout {
+      text-align: right;
+    }
+    #main {
+      margin: 0 14px;
     }
     .stack-trace {
       white-space: pre-line;
@@ -74,7 +86,12 @@
   </style>
 </head>
 <body>
-  <%- defineContent('header') %>
+  <header class="container">
+    <div class="row">
+      <div class="col-sm-10"><a href="/" class="logo"><%= title %></a></div>
+      <div class="col-sm-2 logout"><a href="/oidc/logout" class="button">Logout</a></div>
+    </div>
+  </header>
   <%- body %>
   <%- defineContent('footer') %>
   <%- script %>
