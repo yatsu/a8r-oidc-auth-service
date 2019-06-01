@@ -14,6 +14,7 @@
   "scripts": {
     "start": "nodemon server.js",
     "build": "scripty",
+    "copy-assets": "scripty",
     "push": "scripty"
   },
   "scripty": {

@@ -1,0 +1,4 @@
+#!/bin/bash -eu
+
+cp -fv node_modules/clipboard/dist/clipboard.min.js public/assets/javascripts
+cp -fv node_modules/mini.css/dist/mini-default.min.css public/assets/stylesheets
